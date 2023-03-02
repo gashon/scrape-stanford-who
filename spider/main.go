@@ -50,7 +50,7 @@ func main() {
 	spider = scraper.NewScrapper(generateFileName("grad"), filter)
 	spider.Scrape()
 
-	// grad
+	// computer
 	filter = []scraper.StanfordFilterPayload{
 		{
 			FieldUseID: "193",
