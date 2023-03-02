@@ -11,8 +11,11 @@ mv $dir archives/
 cd spider && go run main.go
 
 cd ../
-echo $(ls | grep csv | xargs -I{} cat {} | uniq) > $(date +%Y-%m-%d).csv
+c=$(date +%Y-%m-%d).csv
+echo $(ls | grep csv | xargs -I{} cat {} | uniq) > $c
 
-git add .
+git add $(ls | grep csv | tr '\n' ' ') archives/$dir 
 git commit -m "cron: $(date)"
 git push
+
+rm -rf archives/$dir
