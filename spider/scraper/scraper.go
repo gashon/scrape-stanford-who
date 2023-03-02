@@ -11,18 +11,26 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"time"
-	"math/rand"
 
 	"github.com/gashon/spider/parser"
 	"github.com/joho/godotenv"
 )
 
-type Scraper struct {}
+type StanfordFilterPayload struct{
+	FieldUseID string `json:"FieldUseID"`
+	FieldType int `json:"FieldType"`
+	FieldValue string `json:"FieldValue"`
+}
 
-func postRequest(conn net.Conn, req string) (string, error) {
-	data := []string{}
-	payload, _ := json.Marshal(data)
+type Scraper struct {
+	Payload []StanfordFilterPayload
+	FileName string
+	mutex *sync.Mutex
+	wg *sync.WaitGroup
+}
+
+func (s *Scraper) postRequest(conn net.Conn, req string) (string, error) {
+	payload, _ := json.Marshal(s.Payload)
 
 	URL := fmt.Sprintf("%s?format=json&locale=en-US&pageNumber=%s", os.Getenv("HOST_NAME"), req)
 	// URL := fmt.Sprintf("%s?format=json&locale=en-US&pageNumber=2", os.Getenv("HOST_NAME"))
@@ -52,28 +60,13 @@ func postRequest(conn net.Conn, req string) (string, error) {
 	return string(body), nil
 }
 
-func generateFileName() string {
-	    // Get the current date in the format "2006-01-02"
-		currentDate := time.Now().Format("2006-01-02")
 
-		// Generate a random nonce as a 4-byte integer
-		rand.Seed(time.Now().UnixNano())
-		randNonce := rand.Intn(9999)
-	
-		// Format the nonce as a zero-padded string
-		nonceStr := fmt.Sprintf("%04d", randNonce)
-	
-		// Combine the date and nonce into a filename string
-		filename := fmt.Sprintf("%s.%s.csv", currentDate, nonceStr)
-	
-		return filename
-}
 
-func appendResultsToFile(profiles []parser.Person, mutex *sync.Mutex) {
+func (s *Scraper) appendResultsToFile(fileName string, profiles []parser.Person, mutex *sync.Mutex) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	file, err := os.OpenFile(fmt.Sprintf("../%s", generateFileName()), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(fmt.Sprintf("../%s", fileName), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,8 +83,8 @@ func appendResultsToFile(profiles []parser.Person, mutex *sync.Mutex) {
 		
 }
 
-func worker(id int, requests <-chan string, mutex *sync.Mutex, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (s *Scraper) worker(id int, requests <-chan string) {
+	defer s.wg.Done()
 	conn, err := net.Dial("tcp", os.Getenv("HOST_SOCKET"))
 	if err != nil {
 		fmt.Println("Error connecting to server:", err)
@@ -103,14 +96,14 @@ func worker(id int, requests <-chan string, mutex *sync.Mutex, wg *sync.WaitGrou
 		fmt.Printf("Worker %d: Sending request %s\n", id, req)
 	
 		var content string
-		content, err = postRequest(conn, req)
+		content, err = s.postRequest(conn, req)
 		if err != nil {
 			fmt.Println("Error sending request:", err)
 			return
 		}
 
 		profiles := parser.Parse(content)
-		appendResultsToFile(profiles, mutex)
+		s.appendResultsToFile(s.FileName, profiles, s.mutex)
 	}
 }
 
@@ -120,9 +113,6 @@ func (s *Scraper) Scrape() error {
 		log.Fatal("Error loading .env file")
 		return err
 	}
-
-	var wg sync.WaitGroup
-	var mutex sync.Mutex
 
 	numRequests, _ := strconv.Atoi(os.Getenv("N_REQUESTS"))
 	numWorkers, _ := strconv.Atoi(os.Getenv("N_WORKERS"))
@@ -139,15 +129,20 @@ func (s *Scraper) Scrape() error {
 
 	// Launch worker goroutines
 	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
-		go worker(i, requests, &mutex, &wg)
+		s.wg.Add(1)
+		go s.worker(i, requests)
 	}
 
-	wg.Wait()
+	s.wg.Wait()
 
 	return nil
 }
 
-func NewScrapper() *Scraper {
-	return &Scraper{}
+func NewScrapper(fileName string, filter []StanfordFilterPayload) *Scraper {
+	return &Scraper{
+		FileName: fileName,
+		Payload: filter,
+		mutex: &sync.Mutex{},
+		wg: &sync.WaitGroup{},
+	}
 }
