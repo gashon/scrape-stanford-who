@@ -2,7 +2,7 @@
 git pull
 
 old_csv=$(ls | grep csv | tr '\n' ' ')
-dir=$(date -v -1d '+%Y-%m-%d')
+dir=$(date -d "yesterday" +%Y-%m-%d)
 
 mkdir $dir
 mv $old_csv $dir/
