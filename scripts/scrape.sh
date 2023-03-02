@@ -18,4 +18,4 @@ git add $old_csv $(ls | grep csv | tr '\n' ' ') archives/$dir
 git commit -m "cron: $(date)"
 git push
 
-rm -rf archives/$dir
+git reset --hard
