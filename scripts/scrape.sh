@@ -7,7 +7,7 @@ mkdir $dir
 mv $old_csv $dir/
 mv $dir archives/
 
-# cd spider && go run main.go
+cd spider && go run main.go
 echo $(ls | grep csv | xargs -I{} cat {} | uniq) > $(date +%Y-%m-%d).csv
 
 cd ../
