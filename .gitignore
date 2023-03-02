@@ -1,0 +1,21 @@
+.env
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Output files
+*.exe
+*.test
+*.prof
+*.out
+
+# Go build and test caches
+*.testcache
+*.profdata
+*.test-output
