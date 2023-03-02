@@ -39,18 +39,7 @@ func main() {
 	spider := scraper.NewScrapper(generateFileName("undergrad"), filter)
 	spider.Scrape()
 
-	// grad
-	filter = []scraper.StanfordFilterPayload{
-		{
-			FieldUseID: "193",
-			FieldType: 1,
-			FieldValue: "University - Student - Graduate",
-		},
-	}
-	spider = scraper.NewScrapper(generateFileName("grad"), filter)
-	spider.Scrape()
-
-	// computer
+	// computer science
 	filter = []scraper.StanfordFilterPayload{
 		{
 			FieldUseID: "193",
