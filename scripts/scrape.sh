@@ -1,7 +1,7 @@
 #!/bin/bash
 
 old_csv=$(ls | grep csv | tr '\n' ' ')
-dir=$(date +%Y-%m-%d)
+dir=$(date -v -1d '+%Y-%m-%d')
 
 mkdir $dir
 mv $old_csv $dir/
