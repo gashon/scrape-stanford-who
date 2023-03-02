@@ -33,7 +33,6 @@ func (s *Scraper) postRequest(conn net.Conn, req string) (string, error) {
 	payload, _ := json.Marshal(s.Payload)
 
 	URL := fmt.Sprintf("%s?format=json&locale=en-US&pageNumber=%s", os.Getenv("HOST_NAME"), req)
-	// URL := fmt.Sprintf("%s?format=json&locale=en-US&pageNumber=2", os.Getenv("HOST_NAME"))
 	httpReq, err := http.NewRequest("POST", URL, bytes.NewBuffer(payload))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
