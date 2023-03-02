@@ -1,4 +1,5 @@
 #!/bin/bash
+git pull
 
 old_csv=$(ls | grep csv | tr '\n' ' ')
 dir=$(date -v -1d '+%Y-%m-%d')
@@ -12,7 +13,6 @@ cd spider && go run main.go
 cd ../
 echo $(ls | grep csv | xargs -I{} cat {} | uniq) > $(date +%Y-%m-%d).csv
 
-git pull
 git add .
 git commit -m "cron: $(date)"
 git push
