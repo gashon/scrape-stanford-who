@@ -12,7 +12,7 @@ cd spider && go run main.go
 
 cd ../
 c=$(date +%Y-%m-%d).csv
-echo $(ls | grep csv | xargs -I{} cat {} | uniq) > $c
+echo $(ls | grep csv | xargs -I{} cat {}) > $c
 
 git add $old_csv $(ls | grep csv | tr '\n' ' ') archives/$dir 
 git commit -m "cron: $(date)"
